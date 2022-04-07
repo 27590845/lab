@@ -105,10 +105,12 @@ int e1000_transmit(struct mbuf *m)
   //先锁住网卡，由于多个应用程序可以调用transmit函数
   acquire(&e1000_lock);
   //得到tx_ring的尾部描述符号;int的问题嘛
+
   uint32 tail = regs[E1000_TDT];
-  struct tx_desc tailD = tx_ring[tail];
+  //难道是复制拷贝函数？
+  // struct tx_desc tailD = tx_ring[tail];
   //
-  if (!(tailD.status & E1000_TXD_STAT_DD))
+  if (!(tx_ring[tail].status & E1000_TXD_STAT_DD))
   {
     //不能是pannic，因为panic会死循环
     printf("The tx_ring is full");
@@ -122,13 +124,13 @@ int e1000_transmit(struct mbuf *m)
     mbuffree(tx_mbufs[tail]);
   }
   //填充新数据到td里面；注意addr是64位的。
-  tailD.addr = (uint64)m->head;
-  tailD.length = m->len;
+  tx_ring[tail].addr = (uint64)m->head;
+  tx_ring[tail].length = m->len;
   // status也要更新,设置为0应该是让硬件更新为1
-  tailD.status = 0;
+  tx_ring[tail].status = 0;
   tx_mbufs[tail] = m;
   //填充td的命令字符
-  tailD.cmd = E1000_TXD_CMD_RS | E1000_TXD_CMD_EOP;
+  tx_ring[tail].cmd = E1000_TXD_CMD_RS | E1000_TXD_CMD_EOP;
 
   //内存栅栏的作用是要先设置了命令字段才能获取指针，以防其他线程拿到没有初始化的tail
   __sync_synchronize();
