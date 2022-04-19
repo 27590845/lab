@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "net.h": "c",
+        "ostream": "c",
+        "user.h": "c"
+    }
+}
