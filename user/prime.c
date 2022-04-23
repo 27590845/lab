@@ -9,8 +9,8 @@ int read_and_write(int p1)
     int flag = 0;
     int while_flag = 1;
     int p[2];
+    pipe(p);
     while (while_flag && read(p1, in, sizeof(int)))
-        ;
     {
 
         if (in[0] == 0)
@@ -35,7 +35,7 @@ int read_and_write(int p1)
         }
         else
         {
-            write(p[0], in[0], sizeof(int));
+            write(p[0], in, sizeof(int));
         }
     }
     close(p[0]);
@@ -48,6 +48,8 @@ int main(int argc, char *argv[])
 
     int nums = 35;
     int p[2];
+    int out[1];
+    pipe(p);
     if (fork() == 0)
     {
         read_and_write(p[1]);
@@ -56,7 +58,8 @@ int main(int argc, char *argv[])
     {
         while (nums--)
         {
-            write(p[0], nums, sizeof(int));
+            out[0] = nums;
+            write(p[0], out, sizeof(int));
         }
     }
     close(p[0]);
